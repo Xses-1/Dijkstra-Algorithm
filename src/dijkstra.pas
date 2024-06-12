@@ -1,19 +1,19 @@
 program Dijkstra;
 type
-	list	 = array [-1..100000] of real;
-	charlist = array [-1..100000] of char;
+	intlist	 = array [0..100000] of integer;
+	charlist = array [0..100000] of char;
 var
 	sources		: charlist;
 	destinations	: charlist;
-	weights		: list;
+	weights		: intlist;
 	origin		: char;
 	destination	: char;
 
 	space		: char;
 	counter		: integer;
 	
-	processed_vert	: list;
-	distances	: list;
+	processed_vert	: intlist;
+	distances	: intlist;
 	smallest_edge	: integer;
 begin
 	counter := 0;
@@ -23,13 +23,17 @@ begin
 	writeln('Provide the input in the format separated by spaces and with the new line');
 	writeln('between each entry of the edge. After the last line write ! as EOF');
 
-	{ Inputing the weighted edge list }
+	{ Inputing the weighted edge intlist }
 	while sources[counter - 1] <> '!' do
 	begin
 		{OMFG it reads the stupid space as an fucking input this is so retarded!}
-		readln(	sources[counter], space,
-			destinations[counter], space,
-			weights[counter]);
+		readln(
+			sources[counter],
+			space,
+			destinations[counter],
+			space,
+			weights[counter]
+			);
 
 		counter := counter + 1;
 	end;
@@ -46,19 +50,21 @@ begin
 	begin
 		processed_vert[counter] := 0;
 		distances[counter + 1] := 99999999;
+		counter := counter + 1;
 	end;
 
 	{ Findign the closest vertices and processing them }
 
-
-
-
 	counter := 0;
 	while sources[counter - 1] <> '!' do
 	begin
-		writeln( sources[counter], space,
-			 destinations[counter], space,
-			 weights[counter]);
+		writeln(
+			sources[counter],
+			space,
+			destinations[counter],
+			space,
+			weights[counter]
+			);
 
 		counter := counter + 1;
 	end;
