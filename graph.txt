@@ -1,3 +1,5 @@
+s
+h
 a s 1
 a b 2
 a c 3
@@ -11,6 +13,3 @@ f g 1
 g e 1
 g h 2
 s e 1
-!
-sh
-
