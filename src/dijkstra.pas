@@ -1,7 +1,8 @@
 program Dijkstra;
 var
 	{ #xx is how Pascal does escape sequences.
-	So `adj` is a 2D array indexed by any 8bit ASCII character }
+	So `adj` is a 2D array indexed by any 8bit ASCII character 
+	-- maybetree }
 	adj: array [#0..#255, #0..#255] of integer;
 	nodes: set of char = [];
 	num_nodes: integer;
@@ -27,7 +28,7 @@ var
 	new_dist: integer;
 
 function closest(const node: char): char;
-	{ Function to find the closest node to a given node }
+{ Function to find the closest node to a given node }
 var
 	min_node: char;
 	next: char;
@@ -91,10 +92,13 @@ begin
 	writeln('(Ctrl + D on mac/linux, Ctrl + Z then Enter on Windows).');
 	Flush(Output);
 
-	{ Inputing the weighted edge intlist }
+	{ Inputing the weighted edges }
 	while not Eof(Input) do
 	begin
 		{OMFG it reads the stupid space as an fucking input this is so retarded!}
+
+		{ Hey, you were the one who suggested we use pascal, stop complaining!
+			-- maybetree }
 		readln(
 			node_from,
 			space,
@@ -127,7 +131,7 @@ begin
 	pascal has no builtin way to get the
 	number of elements in a set other than
 	to iterate over it and increment a
-	variable. }
+	variable. -- maybetree }
 	num_nodes := 0;
 	for this_node in nodes do
 		Inc(num_nodes);
@@ -160,10 +164,5 @@ begin
 	print_path(dest);
 	writeln();
 	Flush(Output);
-
-	{
-	for this_node in nodes do
-		writeln(this_node, space, path[this_node], space, dist[this_node]);
-	}
 
 end.
