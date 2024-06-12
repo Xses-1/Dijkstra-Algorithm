@@ -1,7 +1,4 @@
 program Dijkstra;
-type
-	charlist = array [0..100000] of char;
-	char_int_map = array [#0..#255] of integer;
 var
 	{ #xx is how Pascal does escape sequences.
 	So `adj` is a 2D array indexed by any 8bit ASCII character }
@@ -24,10 +21,10 @@ var
 
 	space: char;
 	
-	dist: char_int_map;
+	dist: array [#0..#255] of integer;
+	path: array [#0..#255] of char;
 	visited: array[#0..#255] of Boolean;
 	new_dist: integer;
-	smallest_edge	: integer;
 
 function closest(const node: char): char;
 	{ Function to find the closest node to a given node }
@@ -44,13 +41,27 @@ begin
 	exit(min_node);
 end;
 
+procedure print_path(const node: char);
+{ procedure to print path to a node }
+var
+	from: char;
+begin
+	from := path[node];
+	if from = node then
+	begin
+		write(from);
+		exit();
+	end;
+	print_path(from);
+	write(space, node);
+end;
+
 begin
 	space := ' ';
 
 	{ initialize adjacency matrix }
 	for i := #0 to #255 do
 	begin
-		visited[i] := false;
 		for j := #0 to #255 do
 		begin
 			adj[i, j] := MaxInt;
@@ -101,6 +112,13 @@ begin
 		dist[node_from] := MaxInt;
 		dist[node_to] := MaxInt;
 
+		{ initialize visited }
+		visited[i] := false;
+
+		{ initialize path }
+		path[node_from] := node_from;
+		path[node_to] := node_to;
+
 		{ add to set of nodes }
 		Include(nodes, node_from);
 		Include(nodes, node_to);
@@ -129,7 +147,10 @@ begin
 
 			new_dist := dist[this_node] + adj[this_node, next_node];
 			if new_dist < dist[next_node] then
+			begin
 				dist[next_node] := new_dist;
+				path[next_node] := this_node;
+			end
 		end;
 
 		visited[this_node] := true;
@@ -137,7 +158,14 @@ begin
 		this_node := closest(this_node);
 	end;
 
+	writeln('The shortest path from origin to destination is:');
+	print_path(dest);
+	writeln();
+	Flush(Output);
+
+	{
 	for this_node in nodes do
-		writeln(this_node, space, dist[this_node]);
+		writeln(this_node, space, path[this_node], space, dist[this_node]);
+	}
 
 end.
