@@ -82,15 +82,13 @@ begin
 	Flush(Output);
 	readln(dest);
 
-	writeln(
-		'Please provide the edges in the format `s d w`, ' +
-		'where `s` and `d` are the source and destination nodes ' +
-		'(single character), ' +
-		'and `w` is the edge weight (integer). ' +
-		'Provide one entry per line, ' +
-		'and send EOF when you are done ' +
-		'(Ctrl + D on mac/linux, Ctrl + Z then Enter on Windows).'
-		);
+	writeln('Please provide the edges in the format `s d w`, ');
+	writeln('where `s` and `d` are the source and destination nodes ');
+	writeln('(single character), ');
+	writeln('and `w` is the edge weight (integer). ');
+	writeln('Provide one entry per line, ');
+	writeln('and send EOF when you are done ');
+	writeln('(Ctrl + D on mac/linux, Ctrl + Z then Enter on Windows).');
 	Flush(Output);
 
 	{ Inputing the weighted edge intlist }
