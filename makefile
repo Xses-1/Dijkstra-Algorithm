@@ -4,6 +4,9 @@ COMPILER=fpc
 
 
 default:
-	${COMPILER} $(SRCDIR)/*
-	mv $(SRCDIR)/* $(BINDIR)
-	mv ${BINDIR}/*.pas ${SRCDIR}
+	@mkdir -p $(BINDIR)
+	${COMPILER} $(SRCDIR)/* -FE$(BINDIR)
+
+clean:
+	@rm -r $(BINDIR)
+
