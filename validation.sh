@@ -28,21 +28,31 @@ do
 		A=$(shuf -i 0-$N -n 1)
 		B=$(shuf -i 0-$N -n 1)
 
-		RDURATION=$( (time "echo "$A $B $GRAPH $EOF" | ./bin/dijkstra") 2>&1 \
+		while [ $A == $B ]
+		do
+			A=$(shuf -i 0-$N -n 1)
+			B=$(shuf -i 0-$N -n 1)
+		done
+
+
+		RDURATION=$( (time "echo "$A $B $GRAPH $EOF" \
+					| ./bin/dijkstra") 2>&1 \
 					| grep real | tail -c 7 | head -c -2)
 
 		RTOTAL_DURATION=$(bc -l <<< "$RTOTAL_DURATION + $RDURATION")
 
 
 
-		UDURATION=$( (time "echo "$A $B $GRAPH $EOF" | ./bin/dijkstra") 2>&1 \
+		UDURATION=$( (time "echo "$A $B $GRAPH $EOF" \
+					| ./bin/dijkstra") 2>&1 \
 					| grep user | tail -c 7 | head -c -2)
 
 		UTOTAL_DURATION=$(bc -l <<< "$UTOTAL_DURATION + $UDURATION")
 
 
 
-		SDURATION=$( (time "echo "$A $B $GRAPH $EOF" | ./bin/dijkstra") 2>&1 \
+		SDURATION=$( (time "echo "$A $B $GRAPH $EOF" \
+					| ./bin/dijkstra") 2>&1 \
 					| grep sys | tail -c 7 | head -c -2)
 
 		STOTAL_DURATION=$(bc -l <<< "$STOTAL_DURATION + $SDURATION")
