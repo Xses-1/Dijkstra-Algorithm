@@ -17,11 +17,14 @@ UTOTAL_DURATION=0
 SDURATION=0
 STOTAL_DURATION=0
 
+echo -n > results.csv
+
 for I in {5..13}
 do
 	N=$((2 ** $I))
 	GRAPH=$(echo "$N $K" | ./bin/graph_generator)
 
+	# Run 20 times in order to compute average
 	for J in {1..20}
 	do
 		# Picking up the random nodes
@@ -35,35 +38,27 @@ do
 		done
 
 
-		RDURATION=$( (time "echo "$A $B $GRAPH $EOF" \
-					| ./bin/dijkstra") 2>&1 \
-					| grep real | tail -c 7 | head -c -2)
+		TIMED=$( (time -p "echo "$A $B $GRAPH" | ./bin/dijkstra") 2>&1)
 
+		RDURATION=$(echo "$TIMED" | grep real | awk '{print $2}')
 		RTOTAL_DURATION=$(bc -l <<< "$RTOTAL_DURATION + $RDURATION")
 
-
-
-		UDURATION=$( (time "echo "$A $B $GRAPH $EOF" \
-					| ./bin/dijkstra") 2>&1 \
-					| grep user | tail -c 7 | head -c -2)
-
+		UDURATION=$(echo "$TIMED" | grep user | awk '{print $2}')
 		UTOTAL_DURATION=$(bc -l <<< "$UTOTAL_DURATION + $UDURATION")
 
-
-
-		SDURATION=$( (time "echo "$A $B $GRAPH $EOF" \
-					| ./bin/dijkstra") 2>&1 \
-					| grep sys | tail -c 7 | head -c -2)
-
+		SDURATION=$(echo "$TIMED" | grep sys | awk '{print $2}')
 		STOTAL_DURATION=$(bc -l <<< "$STOTAL_DURATION + $SDURATION")
+
 	done
 
 	RTOTAL_DURATION=$(bc -l <<< "$RTOTAL_DURATION/20")
 	UTOTAL_DURATION=$(bc -l <<< "$UTOTAL_DURATION/20")
 	STOTAL_DURATION=$(bc -l <<< "$STOTAL_DURATION/20")
-	echo "$N $RTOTAL_DURATION $UTOTAL_DURATION $STOTAL_DURATION"
+	echo "$N,$RTOTAL_DURATION,$UTOTAL_DURATION,$STOTAL_DURATION" \
+		| tee -a results.csv
 
 	RTOTAL_DURATION=0
 	UTOTAL_DURATION=0
 	STOTAL_DURATION=0
 done
+
