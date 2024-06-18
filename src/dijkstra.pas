@@ -1,6 +1,16 @@
 program Dijkstra;
 
 type
+	{ Node struct. Has a `next` pointer to facilitate
+	construction of linked list.
+	Nodes are determined by looking for unique names in
+	edge list 
+
+	`path` is a pointer to the previous node (when walking the shortest path).
+	If `path` is a pointer to self, that means the node is not
+	initialized, or is the origin node.
+	-- maybetree
+	}
 	Tnode = record
 		name: string;
 		path: ^Tnode;
@@ -10,20 +20,29 @@ type
 		next: ^Tnode;
 	end;
 
+	{ Edge struct. Has `next` pointer to facilitate making linked list.
+	-- maybetree }
 	Tedge = record
 		source, dest: ^Tnode;
 		weight: integer;
+
 		next: ^Tedge;
 	end;
 
+	{ Sometime Pascal allows specifying pointer type inline,
+	sometimes it demands you specify it explicitly here.
+	-- maybetree}
 	Pnode = ^Tnode;
 	Pedge = ^Tedge;
 
-
 var
+	{ These are (pointers to first elements of)
+	linked lists of nodes and edges }
 	edges: Pedge;
 	nodes: Pnode;
 
+	{ These are set correctly, but not used anywhere else
+	in the program. }
 	num_edges: integer = 0;
 	num_nodes: integer = 0;
 
@@ -46,6 +65,7 @@ begin
 end;
 
 function new_node(const name: string): Pnode;
+{ Allocate and initialize a new node on the heap and return a pointer to it. }
 var
 	node: ^Tnode;
 begin
@@ -90,6 +110,7 @@ begin
 end;
 
 procedure read_edges();
+{ read edge list from stdin until EOF. }
 var
 	this_edge: Pedge;
 	source_name, dest_name: string;
@@ -124,6 +145,9 @@ begin
 end;
 
 function get_weight(const source: Pnode; const dest: Pnode): integer;
+{ iterate through edge list and find the weight of the edge
+connecting the two specified nodes.
+If no edge is found, return -2 }
 var
 	this_edge: Pedge;
 begin
@@ -134,10 +158,12 @@ begin
 			exit(this_edge^.weight);
 		this_edge := this_edge^.next;
 	end;
-	exit(MaxInt);
+	exit(-2);
 end;
 
 function closest(): Pnode;
+{ find next node to be visited by looking for the unvisited node
+with shortest distance. If all nodes visited, return nil}
 var
 	this_node: Pnode;
 	best_node: Pnode;
@@ -162,6 +188,7 @@ begin
 end;
 
 procedure dijkstra();
+{ main implementation of dijkstra's algo }
 var
 	this_node: Pnode;
 	next_node: Pnode;
@@ -178,7 +205,7 @@ begin
 		while next_node <> nil do
 		begin
 			this_weight := get_weight(this_node, next_node);
-			if this_weight = MaxInt then goto skip;
+			if this_weight = -2 then goto skip;
 
 			if this_node^.dist + this_weight < next_node^.dist then
 			begin
@@ -195,6 +222,7 @@ begin
 end;
 
 procedure print_path(const node: Pnode);
+{ recursively print shortest path to specified node }
 begin
 	if node^.path = node then
 		write(node^.name)
@@ -216,7 +244,6 @@ begin
 	nodes := nil;
 	edges := nil;
 
-
 	writeln(
 		'Please provide the origin node name (any alphanumeric string) ' +
 		'then press Enter.'
@@ -234,7 +261,6 @@ begin
 	push_node(source_name);
 	push_node(dest_name);
 
-
 	writeln('Please provide the edges in the format `s d w`, ');
 	writeln('where `s` and `d` are the source and destination node names ');
 	writeln('(any alphanumeric strings), ');
@@ -245,30 +271,11 @@ begin
 	Flush(Output);
 	read_edges();
 
-	{
-	node := nodes;
-	flush(output);
-	while node <> nil do
-	begin
-		writeln(node^.name);
-		flush(output);
-		node := node^.next;
-	end;
-
-	edge := edges;
-	while edge <> nil do
-	begin
-		write(edge^.source^.name);
-		write(edge^.dest^.name);
-		writeln(edge^.weight);
-		edge := edge^.next;
-	end;
-	}
-
 	nodes^.dist := 0;
 	dijkstra();
 
 	writeln('The shortest path from origin to destination is:');
+	{ Remember, the finish node is second in the linked list }
 	print_path(nodes^.next);
 	writeln();
 
