@@ -6,4 +6,6 @@
 *.log
 *.o
 bin
+*.pdf
+*.csv
 
