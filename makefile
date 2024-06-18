@@ -5,14 +5,16 @@ COMPILER=fpc
 DIJKSTRA=dijkstra
 GENERATOR=graph_generator
 
-$(DIJKSTRA):
-	@mkdir -p $(BINDIR)
+default: dijkstra generator
+
+dijkstra: bindir
 	${COMPILER} $(SRCDIR)/$(DIJKSTRA).pas -FE$(BINDIR)
 
-generator:
-	@mkdir -p $(BINDIR)
+generator: bindir
 	${COMPILER} $(SRCDIR)/$(GENERATOR).pas -FE$(BINDIR)
+
+bindir:
+	@mkdir -p $(BINDIR)
 
 clean:
 	@rm -r $(BINDIR)
-
