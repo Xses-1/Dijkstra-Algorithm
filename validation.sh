@@ -31,13 +31,13 @@ do
 
 		TIMED=$((time -p "echo "$A $B $GRAPH" | ./bin/dijkstra") 2>&1)
 
-		RDURATION=$(echo "$TIMED" 2>&1 | grep real | awk '{print $2}')
+		RDURATION=$(echo "$TIMED" | grep real | awk '{print $2}')
 		RTOTAL_DURATION=$(bc -l <<< "$RTOTAL_DURATION + $RDURATION")
 
-		UDURATION=$(echo "$TIMED" 2>&1 | grep user | awk '{print $2}')
+		UDURATION=$(echo "$TIMED" | grep user | awk '{print $2}')
 		UTOTAL_DURATION=$(bc -l <<< "$UTOTAL_DURATION + $UDURATION")
 
-		SDURATION=$(echo "$TIMED" 2>&1 | grep sys | awk '{print $2}')
+		SDURATION=$(echo "$TIMED" | grep sys | awk '{print $2}')
 		STOTAL_DURATION=$(bc -l <<< "$STOTAL_DURATION + $SDURATION")
 
 	done
