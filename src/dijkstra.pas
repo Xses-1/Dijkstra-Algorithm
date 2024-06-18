@@ -1,168 +1,276 @@
 program Dijkstra;
-var
-	{ #xx is how Pascal does escape sequences.
-	So `adj` is a 2D array indexed by any 8bit ASCII character 
-	-- maybetree }
-	adj: array [#0..#255, #0..#255] of integer;
-	nodes: set of char = [];
-	num_nodes: integer;
-	count: integer;
-	origin: char;
-	dest: char;
 
-	i: char;
-	j: char;
+type
+	Tnode = record
+		name: string;
+		path: ^Tnode;
+		dist: integer;
+		visited: boolean;
 
-	node_from: char;
-	node_to: char;
-	weight: integer;
-
-	this_node: char;
-	next_node: char;
-
-	space: char;
-	
-	dist: array [#0..#255] of integer;
-	path: array [#0..#255] of char;
-	visited: array[#0..#255] of Boolean;
-	new_dist: integer;
-
-function closest(const node: char): char;
-{ Function to find the closest node to a given node }
-var
-	min_node: char;
-	next: char;
-begin
-	min_node := #0;
-	for next in nodes do
-	begin
-		if (adj[node, next] < adj[node, min_node]) and not visited[next] then
-			min_node := next;
+		next: ^Tnode;
 	end;
-	exit(min_node);
+
+	Tedge = record
+		source, dest: ^Tnode;
+		weight: integer;
+		next: ^Tedge;
+	end;
+
+	Pnode = ^Tnode;
+	Pedge = ^Tedge;
+
+
+var
+	edges: Pedge;
+	nodes: Pnode;
+
+	num_edges: integer = 0;
+	num_nodes: integer = 0;
+
+function read_until_space(): string;
+{ read a string from stdin until space.
+ Returns string without space. }
+var
+	in_string: string;
+	in_char: char;
+
+begin
+	in_string := '';
+	while not Eof(Input) do
+	begin
+		read(in_char);
+		if in_char = ' ' then break;
+		in_string := in_string + in_char;
+	end;
+	exit(in_string);
 end;
 
-procedure print_path(const node: char);
-{ procedure to print path to a node }
+function new_node(const name: string): Pnode;
 var
-	from: char;
+	node: ^Tnode;
 begin
-	from := path[node];
-	if from = node then
-	begin
-		write(from);
-		exit();
-	end;
-	print_path(from);
-	write(space, node);
+	new(node);
+	node^.name := name;
+	node^.path := node;
+	node^.dist := MaxInt;
+	node^.next := nil;
+	node^.visited := False;
+	exit(node);
 end;
 
+function push_node(const name: string): Pnode;
+{ function that handles a new node name read from input.
+If the node corresponding to the name already exists,
+it returns a pointer to it.
+If it doesn't yet exist, it creates it and returns a pointer to it. }
+var
+	this_node: Pnode;
 begin
-	space := ' ';
+	this_node := nodes;
 
-	{ initialize adjacency matrix }
-	for i := #0 to #255 do
+	{ special case: this is the first node }
+	if this_node = nil then
 	begin
-		for j := #0 to #255 do
+		nodes := new_node(name);
+		Inc(num_nodes);
+		exit(this_node);
+	end;
+
+	while this_node^.next <> nil do
+	begin
+		if this_node^.name = name then exit(this_node);
+		this_node := this_node^.next;
+	end;
+
+	if this_node^.name = name then exit(this_node);
+
+	this_node^.next := new_node(name);
+	Inc(num_nodes);
+	exit(this_node^.next);
+end;
+
+procedure read_edges();
+var
+	this_edge: Pedge;
+	source_name, dest_name: string;
+	source_node, dest_node: Pnode;
+begin
+	new(edges);
+	this_edge := edges;
+
+	while true do
+	begin
+		source_name:= read_until_space();
+		dest_name := read_until_space();
+		readln(this_edge^.weight);
+
+		source_node := push_node(source_name);
+		dest_node := push_node(dest_name);
+
+		this_edge^.source := source_node;
+		this_edge^.dest := dest_node;
+		Inc(num_edges);
+
+		if eof(input) then
+			break
+		else
 		begin
-			adj[i, j] := MaxInt;
+			{ allocate new edge }
+			new(this_edge^.next);
+			this_edge := this_edge^.next;
 		end;
+		this_edge^.next := nil;
+	end;
+end;
+
+function get_weight(const source: Pnode; const dest: Pnode): integer;
+var
+	this_edge: Pedge;
+begin
+	this_edge := edges;
+	while this_edge <> nil do
+	begin
+		if (this_edge^.source = source) and (this_edge^.dest = dest) then
+			exit(this_edge^.weight);
+		this_edge := this_edge^.next;
+	end;
+	exit(MaxInt);
+end;
+
+function closest(): Pnode;
+var
+	this_node: Pnode;
+	best_node: Pnode;
+label skip;
+begin
+	best_node := nil;
+	this_node := nodes;
+
+	while this_node <> nil do
+	begin
+		if this_node^.visited then goto skip;
+		if (best_node = nil) or (this_node^.dist < best_node^.dist) then
+		begin
+			best_node := this_node;
+		end;
+
+		skip:
+		this_node := this_node^.next;
 	end;
 
-	writeln(
-		'Please provide the origin node as a single character ' +
-		'then press Enter.'
-		);
-	Flush(Output);
-	readln(origin);
+	exit(best_node);
+end;
+
+procedure dijkstra();
+var
+	this_node: Pnode;
+	next_node: Pnode;
+	this_weight: integer = 0;
+label skip;
+begin
+	{ the first node in the linked list is always the starting node,
+	per the definition in the main body of the program }
+	this_node := nodes;
+
+	while this_node <> nil do
+	begin
+		next_node := nodes;
+		while next_node <> nil do
+		begin
+			this_weight := get_weight(this_node, next_node);
+			if this_weight = MaxInt then goto skip;
+
+			if this_node^.dist + this_weight < next_node^.dist then
+			begin
+				next_node^.dist := this_node^.dist + this_weight;
+				next_node^.path := this_node;
+			end;
+
+			skip:
+			next_node := next_node^.next;
+		end;
+		this_node^.visited := True;
+		this_node := closest();
+	end;
+end;
+
+procedure print_path(const node: Pnode);
+begin
+	if node^.path = node then
+		write(node^.name)
+	else
+	begin
+		print_path(node^.path);
+		write(' ', node^.name);
+	end;
+end;
+
+var
+	source_name: string;
+	dest_name: string;
+
+	node: Pnode;
+	edge: Pedge;
+
+begin
+	nodes := nil;
+	edges := nil;
+
 
 	writeln(
-		'Please provide the destination node as a single character ' +
+		'Please provide the origin node name (any alphanumeric string) ' +
 		'then press Enter.'
 		);
 	Flush(Output);
-	readln(dest);
+	readln(source_name);
+
+	writeln(
+		'Please provide the destination node name (any alphanumeric string) ' +
+		'then press Enter.'
+		);
+	Flush(Output);
+	readln(dest_name);
+
+	push_node(source_name);
+	push_node(dest_name);
+
 
 	writeln('Please provide the edges in the format `s d w`, ');
-	writeln('where `s` and `d` are the source and destination nodes ');
-	writeln('(single character), ');
+	writeln('where `s` and `d` are the source and destination node names ');
+	writeln('(any alphanumeric strings), ');
 	writeln('and `w` is the edge weight (integer). ');
 	writeln('Provide one entry per line, ');
 	writeln('and send EOF when you are done ');
 	writeln('(Ctrl + D on mac/linux, Ctrl + Z then Enter on Windows).');
 	Flush(Output);
+	read_edges();
 
-	{ Inputing the weighted edges }
-	while not Eof(Input) do
+	{
+	node := nodes;
+	flush(output);
+	while node <> nil do
 	begin
-		{OMFG it reads the stupid space as an fucking input this is so retarded!}
-
-		{ Hey, you were the one who suggested we use pascal, stop complaining!
-			-- maybetree }
-		readln(
-			node_from,
-			space,
-			node_to,
-			space,
-			weight
-			);
-
-		{ update adjacency matrix }
-		adj[node_from, node_to] := weight;
-
-		{ initialize distance }
-		dist[node_from] := MaxInt;
-		dist[node_to] := MaxInt;
-
-		{ initialize visited }
-		visited[i] := false;
-
-		{ initialize path }
-		path[node_from] := node_from;
-		path[node_to] := node_to;
-
-		{ add to set of nodes }
-		Include(nodes, node_from);
-		Include(nodes, node_to);
+		writeln(node^.name);
+		flush(output);
+		node := node^.next;
 	end;
 
-	{ Get number of nodes.
-	Yes, to the extent of my knowledge,
-	pascal has no builtin way to get the
-	number of elements in a set other than
-	to iterate over it and increment a
-	variable. -- maybetree }
-	num_nodes := 0;
-	for this_node in nodes do
-		Inc(num_nodes);
-
-	{ Initialize distance to origin }
-	dist[origin] := 0;
-	this_node := origin;
-
-	for count := 0 to num_nodes - 1 do
+	edge := edges;
+	while edge <> nil do
 	begin
-
-		for next_node in nodes do
-		begin
-			if adj[this_node, next_node] = MaxInt then continue;
-
-			new_dist := dist[this_node] + adj[this_node, next_node];
-			if new_dist < dist[next_node] then
-			begin
-				dist[next_node] := new_dist;
-				path[next_node] := this_node;
-			end
-		end;
-
-		visited[this_node] := true;
-
-		this_node := closest(this_node);
+		write(edge^.source^.name);
+		write(edge^.dest^.name);
+		writeln(edge^.weight);
+		edge := edge^.next;
 	end;
+	}
+
+	nodes^.dist := 0;
+	dijkstra();
 
 	writeln('The shortest path from origin to destination is:');
-	print_path(dest);
+	print_path(nodes^.next);
 	writeln();
-	Flush(Output);
 
 end.
+
